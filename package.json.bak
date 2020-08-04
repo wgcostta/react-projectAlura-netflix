@@ -18,11 +18,11 @@
   },
   "scripts": {
     "server": "node ./server.js",
+    "dev": "concurrently \"react-scripts start\" \"yarn run server\"", 
     "start": "node ./server.js",
-    "dev": "concurrently \"react-scripts start\" \"node ./server.js\"",
+    "build": "react-scripts build", 
     "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "server:static": "json-server --watch ./src/data/db.json --port 8080"
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -45,7 +45,8 @@
     "eslint-config-airbnb": "^18.2.0",
     "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-jsx-a11y": "^6.3.1",
-    "eslint-plugin-react": "^7.20.3",
-    "eslint-plugin-react-hooks": "^4.0.8"
+    "eslint-plugin-react": "^7.20.5",
+    "eslint-plugin-react-hooks": "^4.0.8",
+    "prettier": "2.0.5"
   }
 }
