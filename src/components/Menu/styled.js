@@ -1,0 +1,35 @@
+import styled from 'styled-components';
+
+export const AvatarWrapper = styled.img`
+    max-width: 168px;
+    height: 30px;
+
+    @media (max-width: 800px) {
+        max-width: 105px;
+    }
+`
+
+export const MenuWrapper = styled.nav`
+    width: 100%;
+    height: 60px;
+    z-index: 100;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding-left: 5%;
+    padding-right: 5%;
+
+    background: var(--black);
+    border-bottom: 2px solid var(--white);
+
+    @media (max-width: 800px) {
+        height: 40px;
+        justify-content: center;
+    }
+`

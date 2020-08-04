@@ -1,132 +1,167 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import PageDefault from '../../../components/PageDefault';
+import { useHistory } from 'react-router-dom';
+import Template from '../../../components/Template';
 import FormField from '../../../components/FormField';
+import Loader from '../../../components/Loader';
+import { ButtonSuccess, ButtonDanger, ButtonIcon } from '../../../components/Button';
+import useForm from '../../../hooks/useForm';
 
-function CadastroCategoria() {
-  const valoresIniciais = {
-    nome: '',
-    descricao: '',
-    cor: '',
+import {
+  Title, Form, Table, ContainerWrapper, IconDelete, IconUpdate 
+} from './styled';
+
+const CadastroCategoria = () => {
+  const history = useHistory();
+  const initialValues = {
+    titulo: '',
+    description: '',
+    cor: '#20bf6b',
   };
-  const [categorias, setCategorias] = useState([]);
-  const [values, setValues] = useState(valoresIniciais);
 
-  function setValue(chave, valor) {
-    // chave: nome, descricao, bla, bli
-    setValues({
-      ...values,
-      [chave]: valor, // nome: 'valor'
-    });
-  }
+  const { handleChange, values, clearForm } = useForm(initialValues);
 
-  function handleChange(infosDoEvento) {
-    setValue(
-      infosDoEvento.target.getAttribute('name'),
-      infosDoEvento.target.value,
-    );
-  }
-
-  // ============
+  // Guarda os valores da lista de categorias
+  const [listCategorys, setListCategorys] = useState([]);
 
   useEffect(() => {
-    if (window.location.href.includes('localhost')) {
-      const URL = 'http://localhost:8080/categorias';
-      fetch(URL)
-        .then(async (respostaDoServer) => {
-          if (respostaDoServer.ok) {
-            const resposta = await respostaDoServer.json();
-            setCategorias(resposta);
-            return;
-          }
-          throw new Error('Não foi possível pegar os dados');
-        });
-    }
+    // O que a gente quer que aconteça
+    const URL_VALUE = window.location.hostname.includes('localhost')
+      ? 'http://localhost:8080/categorias' : 'https://rangoflix.herokuapp.com/categorias';
+
+    fetch(URL_VALUE)
+      .then(async (res) => {
+        const responseReq = await res.json();
+        setListCategorys([
+          ...responseReq,
+        ]);
+      });
   }, []);
 
+  /* quando a quer que aconteça */
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    const URL_VALUE = window.location.hostname.includes('localhost')
+      ? 'http://localhost:8080/categorias' : 'https://rangoflix.herokuapp.com/categorias';
+
+    // Valores do campos do form
+    fetch(URL_VALUE, {
+      method: 'POST',
+      body: JSON.stringify({
+        titulo: values.titulo,
+        description: values.description,
+        cor: values.cor,
+      }),
+      headers: {
+        'content-type': 'application/json',
+      },
+    })
+      .then(async (res) => {
+        const responseFieldValues = await res.json();
+        setListCategorys([...listCategorys, responseFieldValues]); // adicionando os novos valores no state
+        clearForm();
+      });
+  };
+
+  const handleDelete = (event) => {
+    const id = event.target.getAttribute('id');
+
+    const URL_VALUE = window.location.hostname.includes('localhost')
+      ? 'http://localhost:8080/categorias' : 'https://rangoflix.herokuapp.com/categorias';
+
+    fetch(`${URL_VALUE}/${id}`, {
+      method: 'DELETE',
+    })
+      .then((response) => response.json())
+      .then((responseServer) => {
+          history.push('/cadastro/categoria');
+      });
+  };
+
   return (
-    <PageDefault>
-      <h1>
-        Cadastro de Categoria:
-        {values.nome}
-      </h1>
+    <Template styled={{ textAlign: 'center' }}>
 
-      <form onSubmit={function handleSubmit(infosDoEvento) {
-        infosDoEvento.preventDefault();
+      <ContainerWrapper>
+        <Form onSubmit={handleSubmit} autoComplete="off">
+          <Title as="legend">Nova Categoria</Title>
 
-        setCategorias([
-          ...categorias,
-          values,
-        ]);
+          <FormField
+            label="Nome"
+            type="text"
+            name="titulo"
+            value={values.titulo}
+            onChange={handleChange}
+          />
 
-        setValues(valoresIniciais);
-      }}
-      >
+          <FormField
+            label="Descrição"
+            type="textarea"
+            name="description"
+            value={values.description}
+            onChange={handleChange}
+          />
 
-        <FormField
-          label="Nome da Categoria"
-          type="text"
-          name="nome"
-          value={values.nome}
-          onChange={handleChange}
-        />
+          <FormField
+            label={`Color: ${values.cor}`}
+            type="color"
+            name="cor"
+            value={values.cor}
+            onChange={handleChange}
+          />
 
-        <FormField
-          label="Descrição:"
-          type="????"
-          name="descricao"
-          value={values.descricao}
-          onChange={handleChange}
-        />
-        {/* <div>
-          <label>
-            Descrição:
-            <textarea
-              type="text"
-              value={values.descricao}
-              name="descricao"
-              onChange={handleChange}
-            />
-          </label>
-        </div> */}
+          <ButtonSuccess type="submit" style={{ marginRight: '30px' }}>Cadastrar</ButtonSuccess>
+          <ButtonDanger type="button" onClick={() => clearForm()}>Limpar</ButtonDanger>
+        </Form>
 
-        <FormField
-          label="Cor"
-          type="color"
-          name="cor"
-          value={values.cor}
-          onChange={handleChange}
-        />
-        {/* <div>
-          <label>
-            Cor:
-            <input
-              type="color"
-              value={values.cor}
-              name="cor"
-              onChange={handleChange}
-            />
-          </label>
-        </div> */}
+        {listCategorys.length === 0 && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'column',
+            margin: '40px 0',
+          }}
+          >
+            <Loader />
+            <div style={{ fontSize: '12px', color: '#fff', marginTop: '10px' }}>Aguarde, carregando categorias...</div>
+          </div>
+        )}
 
-        <button type="submit">
-          Cadastrar
-        </button>
-      </form>
+        {listCategorys.length > 0
+                && (
+                <Table style={{ marginTop: '30px' }}>
+                  <thead>
+                    <tr>
+                      <th>Nome</th>
+                      <th>Descrição</th>
+                      {/* <th>Ações</th> */}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {listCategorys.map((category, index) => (
+                      // eslint-disable-next-line react/no-array-index-key
+                      <tr key={index}>
+                        <td>{category.titulo}</td>
+                        <td>{category.description}</td>
+                        {/* <td style={{ display: 'flex' }}>
+                          <ButtonIcon type="button">
+                            <IconUpdate />  
+                          </ButtonIcon>
 
-      <ul>
-        {categorias.map((categoria) => (
-          <li key={`${categoria.id}`}>
-            {categoria.titulo}
-          </li>
-        ))}
-      </ul>
-
-      <Link to="/">
-        Ir para home
-      </Link>
-    </PageDefault>
+                          <ButtonIcon id={category.id} onClick={(event) => handleDelete(event)} type="button">  
+                            <IconDelete />
+                          </ButtonIcon>
+                      
+                        </td> */}
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+                )}
+      </ContainerWrapper>
+    </Template>
   );
-}
+};
 
 export default CadastroCategoria;
